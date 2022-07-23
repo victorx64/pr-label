@@ -1,0 +1,16 @@
+{
+	"name": "pr-size-advisor devcontainer",
+	"build": {
+		"dockerfile": "Dockerfile"
+	},
+
+	"settings": {},
+
+	"extensions": [
+		"ms-dotnettools.csharp"
+	],
+
+	"features": {
+		"git": "2.36.1"
+	}
+}

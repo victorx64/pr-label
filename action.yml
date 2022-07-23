@@ -1,0 +1,34 @@
+name: Pull request size and stability labels
+description: Stability evaluated for each contributor based on his merged PRs
+author: victorx64
+inputs:
+  devrating-organization:
+    description: Your Organization_ID. Visit https://devrating.net/#/keys to obtain
+    default: sgUj3bYc7wXTAXjF5DN0ON7lTTT2
+    required: false
+  devrating-api-key:
+    description: Your API_Key. Visit https://devrating.net/#/keys to create new
+    default: anonymous
+    required: false
+runs:
+  using: "composite"
+  steps:
+    - uses: actions/checkout@v3
+      with:
+        fetch-depth: 0
+        ref: ${{ github.event.pull_request.merge_commit_sha }}
+    - run: |
+        dotnet run --project ${{ github.action_path }}/pr-size-and-stability.csproj -- `
+        '${{ inputs.devrating-organization }}' `
+        '${{ inputs.devrating-api-key }}' `
+        '${{ github.repository }}' `
+        '${{ github.token }}' `
+        '${{ github.workspace }}' `
+        '${{ github.base_ref }}' `
+        '${{ github.event.pull_request.number }}' `
+        '${{ github.event.pull_request.merged }}' `
+        '${{ github.event.pull_request.merge_commit_sha }}'
+      shell: pwsh
+branding:
+  icon: git-pull-request
+  color: blue
