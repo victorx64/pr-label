@@ -1,20 +1,19 @@
-using System.Text.Json.Nodes;
 using Octokit;
 
-public sealed class StabilityLabel
+public sealed class SizeLabel
 {
     private readonly IGitHubClient github;
     private readonly string owner;
     private readonly string repository;
     private readonly int number;
-    private readonly devrating.factory.Formula formula = new devrating.factory.DefaultFormula();
     private readonly NewLabel[] labels = new[]{
-        new NewLabel("stability/low", "6C757C"),
-        new NewLabel("stability/medium", "F8F9FA"),
-        new NewLabel("stability/high", "0E74F7"),
+        new NewLabel("extra small", "F8F9FA"),
+        new NewLabel("small", "218757"),
+        new NewLabel("medium", "FEBE36"),
+        new NewLabel("large", "DA2B47"),
     };
 
-    public StabilityLabel(
+    public SizeLabel(
         IGitHubClient github,
         string owner,
         string repository,
@@ -26,37 +25,36 @@ public sealed class StabilityLabel
         this.number = number;
     }
 
-    public async Task Update(JsonNode stats)
+    public async Task Update()
     {
         await CreateLabelsForRepository();
 
-        var rating = stats["NewRating"]?.GetValue<double>() ??
-            stats["UsedRating"]?.GetValue<double>() ??
-            formula.DefaultRating();
+        var additions = (await github.PullRequest.Get(owner, repository, number)).Additions;
 
-        var rank = (int)(RatingPercentile(rating) * 3d);
+        var suggested = 25;
+
+        var labelId = 3;
+
+        if (additions < suggested)
+            labelId = 0;
+        else if (additions < suggested * 3)
+            labelId = 1;
+        else if (additions < suggested * 6)
+            labelId = 2;
 
         var issueLabels = await github.Issue.Labels.GetAllForIssue(owner, repository, number);
 
         foreach (var label in labels)
-        {
-            if (
-                label != labels[rank] &&
-                issueLabels.Any(l => l.Name.Equals(label.Name, StringComparison.OrdinalIgnoreCase))
-            )
-            {
+            if (label != labels[labelId] &&
+                issueLabels.Any(l => l.Name.Equals(label.Name, StringComparison.OrdinalIgnoreCase)))
                 await github.Issue.Labels.RemoveFromIssue(owner, repository, number, label.Name);
-            }
-        }
 
-        if (!issueLabels.Any(l => l.Equals(labels[rank])))
-        {
+        if (!issueLabels.Any(l => l.Equals(labels[labelId])))
             await github.Issue.Labels.AddToIssue(
                 owner,
                 repository,
                 number,
-                new[] { labels[rank].Name });
-        }
+                new[] { labels[labelId].Name });
     }
 
     private async Task CreateLabelsForRepository()
@@ -64,18 +62,7 @@ public sealed class StabilityLabel
         var repositoryLabels = await github.Issue.Labels.GetAllForRepository(owner, repository);
 
         foreach (var label in labels)
-        {
             if (!repositoryLabels.Any(l => l.Name.Equals(label.Name, StringComparison.OrdinalIgnoreCase)))
-            {
                 await github.Issue.Labels.Create(owner, repository, label);
-            }
-        }
-    }
-
-    private double RatingPercentile(double a)
-    {
-        const int n = 400;
-
-        return Math.Pow(10, a / n) / (Math.Pow(10, a / n) + Math.Pow(10, formula.DefaultRating() / n));
     }
 }

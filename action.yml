@@ -1,34 +1,57 @@
 name: Pull request size and stability labels
-description: Stability evaluated for each contributor based on his merged PRs
+description: This action marks PRs with size and estimated stability labels
 author: victorx64
-inputs:
-  devrating-organization:
-    description: Your Organization_ID. Visit https://devrating.net/#/keys to obtain
-    default: sgUj3bYc7wXTAXjF5DN0ON7lTTT2
-    required: false
-  devrating-api-key:
-    description: Your API_Key. Visit https://devrating.net/#/keys to create new
-    default: anonymous
-    required: false
 runs:
   using: "composite"
   steps:
+    - uses: actions/cache@v3
+      with:
+        path: ${{ github.action_path }}/devrating.sqlite3
+        key: devrating.sqlite3-${{ github.run_id }}
+        restore-keys: |
+          devrating.sqlite3-
+
+    # on pull_request
     - uses: actions/checkout@v3
+      if: github.event_name == 'pull_request'
       with:
         fetch-depth: 0
-        ref: ${{ github.event.pull_request.merge_commit_sha }}
+        ref: ${{ github.event.pull_request.head.sha }}
     - run: |
-        dotnet run --project ${{ github.action_path }}/pr-size-and-stability.csproj -- `
-        '${{ inputs.devrating-organization }}' `
-        '${{ inputs.devrating-api-key }}' `
+        dotnet run --project ${{ github.action_path }}/on-pull_request/on-pull_request.csproj -- `
         '${{ github.repository }}' `
         '${{ github.token }}' `
         '${{ github.workspace }}' `
         '${{ github.base_ref }}' `
         '${{ github.event.pull_request.number }}' `
-        '${{ github.event.pull_request.merged }}' `
-        '${{ github.event.pull_request.merge_commit_sha }}'
+        '${{ github.event.pull_request.base.sha }}' `
+        '${{ github.event.pull_request.head.sha }}' `
+        '${{ github.action_path }}/devrating.sqlite3'
+      if: github.event_name == 'pull_request'
       shell: pwsh
+    - run: rm '${{ github.action_path }}/devrating.sqlite3'
+      if: github.event_name == 'pull_request'
+      shell: pwsh
+
+    # on push
+    - uses: actions/checkout@v3
+      if: github.event_name == 'push'
+      with:
+        fetch-depth: 0
+    - run: |
+        dotnet run --project ${{ github.action_path }}/on-push/on-push.csproj -- `
+        '${{ github.repository }}' `
+        '${{ github.token }}' `
+        '${{ github.workspace }}' `
+        '${{ github.ref_name }}' `
+        '${{ github.action_path }}/devrating.sqlite3'
+      if: github.event_name == 'push'
+      shell: pwsh
+    - uses: actions/upload-artifact@v3
+      if: github.event_name == 'push'
+      with:
+        name: devrating.sqlite3
+        path: ${{ github.action_path }}/devrating.sqlite3
 branding:
   icon: git-pull-request
   color: blue

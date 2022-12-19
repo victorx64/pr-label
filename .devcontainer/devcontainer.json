@@ -1,5 +1,5 @@
 {
-	"name": "pr-size-advisor devcontainer",
+	"name": "pr-label devcontainer",
 	"build": {
 		"dockerfile": "Dockerfile"
 	},
@@ -11,6 +11,6 @@
 	],
 
 	"features": {
-		"git": "2.36.1"
+		"git": "2.38.2"
 	}
 }

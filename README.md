@@ -26,13 +26,14 @@ When a contributor deletes lines of code, he increases his rating and lowers the
 Throw this to `.github/workflows/pr-label.yml` in your repo:
 
 ```yaml
-name: Update PR labels
+name: Add PR size and stability labels
 on:
   pull_request:
+    types: [ opened, synchronize ]
+  push:
     branches: [ master, main ]
-    types: [ opened, synchronize, closed, reopened ]
 jobs:
-  pr-size:
+  add-pr-labels:
     runs-on: ubuntu-latest
     steps:
     - uses: victorx64/pr-label@v0
