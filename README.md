@@ -37,4 +37,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - uses: victorx64/pr-label@v0
+      with:
+        # Optional pattern used to limit paths. Example: "'*.js' ':!*.spec.js' .". See https://git-scm.com/docs/gitglossary#Documentation/gitglossary.txt-aiddefpathspecapathspec
+        git-pathspec: # optional
 ```

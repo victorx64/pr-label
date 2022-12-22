@@ -26,14 +26,20 @@ await gh.UpdatePrLabels(
             @base: new GitProcess(
                     log: loggerFactory,
                     filename: "git",
-                    arguments: $"rev-parse {args[5]}",
+                    arguments: new[] {
+                        "rev-parse",
+                        args[5],
+                    },
                     directory: args[2])
                 .Output()
                 .First(),
             commit: new GitProcess(
                     log: loggerFactory,
                     filename: "git",
-                    arguments: $"rev-parse {args[6]}",
+                    arguments: new[] {
+                        "rev-parse",
+                        args[6],
+                    },
                     directory: args[2])
                 .Output()
                 .First(),
@@ -46,5 +52,6 @@ await gh.UpdatePrLabels(
             key: gh.Repository(),
             link: $"{gh.Owner()}/{gh.Repository()}#{args[4]}",
             organization: gh.Owner(),
-            createdAt: DateTimeOffset.UtcNow)),
+            createdAt: DateTimeOffset.UtcNow,
+            paths: args[8..])),
     int.Parse(args[4]));

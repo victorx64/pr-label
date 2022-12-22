@@ -29,7 +29,10 @@ foreach (var pr in await gh.RecentMergedPrs())
                     new GitProcess(
                         log: loggerFactory,
                         filename: "git",
-                        arguments: $"rev-parse {pr.Oid}~",
+                        arguments: new[] {
+                            "rev-parse",
+                            $"{pr.Oid}~",
+                        },
                         directory: args[2])
                     .Output()
                     .First(),
@@ -37,7 +40,10 @@ foreach (var pr in await gh.RecentMergedPrs())
                     new GitProcess(
                         log: loggerFactory,
                         filename: "git",
-                        arguments: $"rev-parse {pr.Oid}",
+                        arguments: new[] {
+                            "rev-parse",
+                            pr.Oid,
+                        },
                         directory: args[2])
                     .Output()
                     .First(),
@@ -51,4 +57,5 @@ foreach (var pr in await gh.RecentMergedPrs())
                 key: gh.Repository(),
                 link: pr.Url,
                 organization: gh.Owner(),
-                createdAt: pr.MergedAt!.Value));
+                createdAt: pr.MergedAt!.Value,
+                paths: args[5..]));

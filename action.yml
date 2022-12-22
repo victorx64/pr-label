@@ -1,6 +1,10 @@
 name: Pull request size and stability labels
 description: This action marks PRs with size and estimated stability labels
 author: victorx64
+inputs:
+  git-pathspec:
+    description: Pattern used to limit paths. See https://git-scm.com/docs/gitglossary#Documentation/gitglossary.txt-aiddefpathspecapathspec
+    required: false
 runs:
   using: "composite"
   steps:
@@ -26,7 +30,8 @@ runs:
         '${{ github.event.pull_request.number }}' `
         '${{ github.event.pull_request.base.sha }}' `
         '${{ github.event.pull_request.head.sha }}' `
-        '${{ github.action_path }}/devrating.sqlite3'
+        '${{ github.action_path }}/devrating.sqlite3' `
+        ${{ inputs.git-pathspec }}
       if: github.event_name == 'pull_request'
       shell: pwsh
     - run: rm '${{ github.action_path }}/devrating.sqlite3'
@@ -44,7 +49,8 @@ runs:
         '${{ github.token }}' `
         '${{ github.workspace }}' `
         '${{ github.ref_name }}' `
-        '${{ github.action_path }}/devrating.sqlite3'
+        '${{ github.action_path }}/devrating.sqlite3' `
+        ${{ inputs.git-pathspec }}
       if: github.event_name == 'push'
       shell: pwsh
     - uses: actions/upload-artifact@v3
