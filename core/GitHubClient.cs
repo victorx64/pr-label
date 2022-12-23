@@ -63,6 +63,10 @@ public sealed class GitHubClient
         double rating,
         int prNumber)
     {
+        loggerFactory.CreateLogger<GitHubClient>().LogInformation(
+            new EventId(1006847),
+            $"PR Additions: `{size}`. PR Stability: `{rating}`");
+
         var githubRest = new Octokit.GitHubClient(
            new Octokit.ProductHeaderValue(
                Assembly.GetExecutingAssembly().GetName().Name,
