@@ -19,7 +19,12 @@ var gh = new GitHubClient(
     ownerAndRepository: args[0]);
 
 await gh.UpdatePrLabels(
-    new StabilityMetric(loggerFactory, args[7])
+    size: new GitDiffSizes(
+        log: loggerFactory,
+        repository: args[2],
+        paths: args[8..])
+    .Additions(args[6]),
+    rating: new StabilityMetric(loggerFactory, args[7])
     .ValueFor(
         diff: new GitDiff(
             log: loggerFactory,
@@ -54,4 +59,4 @@ await gh.UpdatePrLabels(
             organization: gh.Owner(),
             createdAt: DateTimeOffset.UtcNow,
             paths: args[8..])),
-    int.Parse(args[4]));
+    prNumber: int.Parse(args[4]));

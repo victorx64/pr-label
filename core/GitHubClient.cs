@@ -59,6 +59,7 @@ public sealed class GitHubClient
     }
 
     public async Task UpdatePrLabels(
+        uint size,
         double rating,
         int prNumber)
     {
@@ -70,7 +71,7 @@ public sealed class GitHubClient
             Credentials = new Octokit.Credentials(githubToken)
         };
 
-        await new SizeLabel(githubRest, owner, repository, prNumber).Update();
+        await new SizeLabel(githubRest, owner, repository, prNumber).Update(size);
         await new StabilityLabel(githubRest, owner, repository, prNumber).Update(rating);
     }
 

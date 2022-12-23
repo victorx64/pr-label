@@ -25,11 +25,9 @@ public sealed class SizeLabel
         this.number = number;
     }
 
-    public async Task Update()
+    public async Task Update(uint additions)
     {
         await CreateLabelsForRepository();
-
-        var additions = (await github.PullRequest.Get(owner, repository, number)).Additions;
 
         var suggested = 25;
 
