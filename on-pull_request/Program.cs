@@ -18,45 +18,41 @@ var gh = new GitHubClient(
     baseBranch: args[3],
     ownerAndRepository: args[0]);
 
-await gh.UpdatePrLabels(
-    size: new GitDiffSizes(
-        log: loggerFactory,
-        repository: args[2],
-        paths: args[8..])
-    .Additions(args[6]),
-    rating: new StabilityMetric(loggerFactory, args[7])
-    .ValueFor(
-        diff: new GitDiff(
+var d = new GitDiff(
+    log: loggerFactory,
+    @base: new GitProcess(
             log: loggerFactory,
-            @base: new GitProcess(
-                    log: loggerFactory,
-                    filename: "git",
-                    arguments: new[] {
-                        "rev-parse",
-                        args[5],
-                    },
-                    directory: args[2])
-                .Output()
-                .First(),
-            commit: new GitProcess(
-                    log: loggerFactory,
-                    filename: "git",
-                    arguments: new[] {
-                        "rev-parse",
-                        args[6],
-                    },
-                    directory: args[2])
-                .Output()
-                .First(),
-            since: new GitLastMajorUpdateTag(
-                    loggerFactory: loggerFactory,
-                    repository: args[2],
-                    before: args[6])
-                .Sha(),
+            filename: "git",
+            arguments: new[] {
+                "rev-parse",
+                args[5],
+            },
+            directory: args[2])
+        .Output()
+        .First(),
+    commit: new GitProcess(
+            log: loggerFactory,
+            filename: "git",
+            arguments: new[] {
+                "rev-parse",
+                args[6],
+            },
+            directory: args[2])
+        .Output()
+        .First(),
+    since: new GitLastMajorUpdateTag(
+            loggerFactory: loggerFactory,
             repository: args[2],
-            key: gh.Repository(),
-            link: $"{gh.Owner()}/{gh.Repository()}#{args[4]}",
-            organization: gh.Owner(),
-            createdAt: DateTimeOffset.UtcNow,
-            paths: args[8..])),
+            before: args[6])
+        .Sha(),
+    repository: args[2],
+    key: gh.Repository(),
+    link: $"{gh.Owner()}/{gh.Repository()}#{args[4]}",
+    organization: gh.Owner(),
+    createdAt: DateTimeOffset.UtcNow,
+    paths: args[8..]);
+
+await gh.UpdatePrLabels(
+    size: d.Additions(),
+    rating: new StabilityMetric(loggerFactory, args[7]).ValueFor(diff: d),
     prNumber: int.Parse(args[4]));
