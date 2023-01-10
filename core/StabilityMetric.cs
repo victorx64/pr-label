@@ -98,9 +98,7 @@ public sealed class StabilityMetric
     {
         var logger = loggerFactory.CreateLogger<StabilityMetric>();
 
-        logger.LogInformation(
-            new EventId(1146241),
-            $"Calculating updated rating for diff: `{diff.ToJson()}`");
+        logger.LogInformation(new EventId(1146241), $"Diff: `{diff.ToJson()}`");
 
         database.Instance().Connection().Open();
 
@@ -117,16 +115,8 @@ public sealed class StabilityMetric
                 database.Instance().Create();
             }
 
-            var w = NewWork(diff);
-
-            return database
-                .Entities()
-                .Ratings()
-                .GetOperation()
-                .RatingsOf(w.Id())
-                .FirstOrDefault(
-                    r => r.Author().Id().Equals(w.Author().Id()))
-                ?.Value() ?? formula.DefaultRating();
+            var rating = NewWork(diff).UsedRating();
+            return rating.Id().Filled() ? rating.Value() : formula.DefaultRating();
         }
         finally
         {

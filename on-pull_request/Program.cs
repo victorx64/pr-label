@@ -52,7 +52,13 @@ var d = new GitDiff(
     createdAt: DateTimeOffset.UtcNow,
     paths: args[8..]);
 
+var r = new StabilityMetric(loggerFactory, args[7]).ValueFor(diff: d);
+
 await gh.UpdatePrLabels(
     size: d.Additions(),
-    rating: new StabilityMetric(loggerFactory, args[7]).ValueFor(diff: d),
+    rating: r,
     prNumber: int.Parse(args[4]));
+
+loggerFactory.CreateLogger<Program>().LogInformation(
+    new EventId(1833095),
+    $"Reward: {new Reward().Value(r):F2}");
