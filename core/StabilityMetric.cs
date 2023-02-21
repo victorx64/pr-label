@@ -109,7 +109,7 @@ public sealed class StabilityMetric
             if (!database.Instance().Present())
             {
                 logger.LogInformation(
-                    new EventId(1824416),
+                    new EventId(1955253),
                     $"The DB is not present. Creating");
 
                 database.Instance().Create();
@@ -127,10 +127,11 @@ public sealed class StabilityMetric
 
     private Work NewWork(Diff diff)
     {
-        var authorFactory = new DefaultAuthorFactory(database.Entities().Authors());
+        var authors = database.Entities().Authors();
+        var authorFactory = new DefaultAuthorFactory(authors);
         var ratings = database.Entities().Ratings();
 
-        return diff.NewWork(
+        var w = diff.NewWork(
             new DefaultFactories(
                 authorFactory,
                 new DefaultWorkFactory(
@@ -142,5 +143,23 @@ public sealed class StabilityMetric
                     authorFactory,
                     ratings,
                     formula)));
+
+        var logger = loggerFactory.CreateLogger<StabilityMetric>();
+        logger.LogInformation(new EventId(1437603), "Rating | Author");
+        logger.LogInformation(new EventId(1437603), "------ | ------");
+
+        foreach (var author in authors
+            .GetOperation()
+            .Top(
+                w.Author().Organization(),
+                w.Author().Repository(),
+                DateTimeOffset.UtcNow.AddDays(-90)))
+        {
+            var rating = database.Entities().Ratings().GetOperation().RatingOf(author.Id()).Value();
+
+            logger.LogInformation(new EventId(1437603), $"{rating,6:F0} | <{author.Email()}>");
+        }
+
+        return w;
     }
 }
