@@ -65,7 +65,7 @@ public sealed class GitHubClient
     {
         loggerFactory.CreateLogger<GitHubClient>().LogInformation(
             new EventId(1006847),
-            $"PR Additions: `{size}`. PR Stability: `{rating}`");
+            $"PR Additions: `{size}`. Rating before this PR: `{rating:F0}`");
 
         var githubRest = new Octokit.GitHubClient(
            new Octokit.ProductHeaderValue(
