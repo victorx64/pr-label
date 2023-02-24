@@ -1,9 +1,16 @@
+using devrating.factory;
+
 public sealed class Reward
 {
-    private readonly devrating.factory.Formula formula = new devrating.factory.DefaultFormula();
+    private readonly Formula formula;
 
-    public double Value(double rating)
+    public Reward(Formula formula)
     {
-        return formula.WinProbabilityOfA(rating, formula.DefaultRating());
+        this.formula = formula;
+    }
+
+    public uint Value(double rating)
+    {
+        return (uint)(formula.WinProbabilityOfA(rating, formula.DefaultRating()) * 100d);
     }
 }

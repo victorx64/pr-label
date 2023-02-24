@@ -1,4 +1,5 @@
 using System.Reflection;
+using devrating.factory;
 using devrating.git;
 using Microsoft.Extensions.Logging;
 
@@ -47,18 +48,27 @@ var d = new GitDiff(
         .Sha(),
     repository: args[2],
     key: gh.Repository(),
-    link: $"{gh.Owner()}/{gh.Repository()}#{args[4]}",
+    link: $"https://github.com/{gh.Owner()}/{gh.Repository()}/pull/{args[4]}",
     organization: gh.Owner(),
     createdAt: DateTimeOffset.UtcNow,
-    paths: args[8..]);
+    paths: args[9..]);
 
-var r = new StabilityMetric(loggerFactory, args[7]).ValueFor(diff: d);
+var sm = new StabilityMetric(
+    loggerFactory: loggerFactory,
+    formula: new DefaultFormula(),
+    database: args[7]);
+
+sm.Apply(diff: d);
+
+var r = sm.Report(diff: d);
 
 await gh.UpdatePrLabels(
     size: d.Additions(),
-    rating: r,
+    rating: r.UsedRating,
     prNumber: int.Parse(args[4]));
 
 loggerFactory.CreateLogger<Program>().LogInformation(
     new EventId(1833095),
-    $"Reward: {new Reward().Value(r):F2}");
+    $"Reward: {r.Reward}");
+
+r.Write(args[8]);

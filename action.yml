@@ -31,12 +31,18 @@ runs:
         '${{ github.event.pull_request.base.sha }}' `
         '${{ github.event.pull_request.head.sha }}' `
         '${{ github.action_path }}/devrating.sqlite3' `
+        '${{ github.action_path }}/leaderboard.md' `
         ${{ inputs.git-pathspec }}
       if: github.event_name == 'pull_request'
       shell: pwsh
     - run: rm '${{ github.action_path }}/devrating.sqlite3'
       if: github.event_name == 'pull_request'
       shell: pwsh
+    - uses: actions/upload-artifact@v3
+      if: github.event_name == 'pull_request'
+      with:
+        name: leaderboard.md
+        path: ${{ github.action_path }}/leaderboard.md
 
     # on push
     - uses: actions/checkout@v3
@@ -50,6 +56,7 @@ runs:
         '${{ github.workspace }}' `
         '${{ github.ref_name }}' `
         '${{ github.action_path }}/devrating.sqlite3' `
+        '${{ github.action_path }}/leaderboard.md' `
         ${{ inputs.git-pathspec }}
       if: github.event_name == 'push'
       shell: pwsh
@@ -58,6 +65,11 @@ runs:
       with:
         name: devrating.sqlite3
         path: ${{ github.action_path }}/devrating.sqlite3
+    - uses: actions/upload-artifact@v3
+      if: github.event_name == 'push'
+      with:
+        name: leaderboard.md
+        path: ${{ github.action_path }}/leaderboard.md
 branding:
   icon: git-pull-request
   color: blue

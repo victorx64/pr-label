@@ -7,12 +7,13 @@ using Microsoft.Extensions.Logging;
 public sealed class StabilityMetric
 {
     private readonly ILoggerFactory loggerFactory;
-    private readonly Formula formula = new DefaultFormula();
+    private readonly Formula formula;
     private readonly Database database;
 
-    public StabilityMetric(ILoggerFactory loggerFactory, string database)
+    public StabilityMetric(ILoggerFactory loggerFactory, Formula formula, string database)
     {
         this.loggerFactory = loggerFactory;
+        this.formula = formula;
         this.database =
             new SqliteDatabase(
                 new TransactedDbConnection(
@@ -22,7 +23,6 @@ public sealed class StabilityMetric
     public bool IsCommitApplied(string organization, string repository, string commit)
     {
         var logger = loggerFactory.CreateLogger<StabilityMetric>();
-
         database.Instance().Connection().Open();
 
         using var transaction = database.Instance().Connection().BeginTransaction();
@@ -30,13 +30,7 @@ public sealed class StabilityMetric
         try
         {
             if (!database.Instance().Present())
-            {
-                logger.LogInformation(
-                    new EventId(1932471),
-                    $"The DB is not present. Creating");
-
-                database.Instance().Create();
-            }
+                return false;
 
             return database.Entities().Works().ContainsOperation().Contains(organization, repository, commit);
         }
@@ -70,14 +64,6 @@ public sealed class StabilityMetric
                 database.Instance().Create();
             }
 
-            if (diff.PresentIn(database.Entities().Works()))
-            {
-                logger.LogInformation(
-                    new EventId(1435402),
-                    $"The diff is already applied. Skipping");
-                return;
-            }
-
             NewWork(diff);
 
             transaction.Commit();
@@ -94,7 +80,7 @@ public sealed class StabilityMetric
         }
     }
 
-    public double ValueFor(Diff diff)
+    public Report Report(Diff diff)
     {
         var logger = loggerFactory.CreateLogger<StabilityMetric>();
 
@@ -106,17 +92,10 @@ public sealed class StabilityMetric
 
         try
         {
-            if (!database.Instance().Present())
-            {
-                logger.LogInformation(
-                    new EventId(1955253),
-                    $"The DB is not present. Creating");
-
-                database.Instance().Create();
-            }
-
-            var rating = NewWork(diff).UsedRating();
-            return rating.Id().Filled() ? rating.Value() : formula.DefaultRating();
+            return new Report(
+                database,
+                formula,
+                diff.RelatedWork(database.Entities().Works()));
         }
         finally
         {
@@ -127,11 +106,10 @@ public sealed class StabilityMetric
 
     private Work NewWork(Diff diff)
     {
-        var authors = database.Entities().Authors();
-        var authorFactory = new DefaultAuthorFactory(authors);
+        var authorFactory = new DefaultAuthorFactory(database.Entities().Authors());
         var ratings = database.Entities().Ratings();
 
-        var w = diff.NewWork(
+        return diff.NewWork(
             new DefaultFactories(
                 authorFactory,
                 new DefaultWorkFactory(
@@ -143,23 +121,5 @@ public sealed class StabilityMetric
                     authorFactory,
                     ratings,
                     formula)));
-
-        var logger = loggerFactory.CreateLogger<StabilityMetric>();
-        logger.LogInformation(new EventId(1437603), "Rating | Author");
-        logger.LogInformation(new EventId(1437603), "------ | ------");
-
-        foreach (var author in authors
-            .GetOperation()
-            .Top(
-                w.Author().Organization(),
-                w.Author().Repository(),
-                DateTimeOffset.UtcNow.AddDays(-90)))
-        {
-            var rating = database.Entities().Ratings().GetOperation().RatingOf(author.Id()).Value();
-
-            logger.LogInformation(new EventId(1437603), $"{rating,6:F0} | <{author.Email()}>");
-        }
-
-        return w;
     }
 }
