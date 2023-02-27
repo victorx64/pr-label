@@ -1,4 +1,5 @@
 using System.Reflection;
+using devrating.factory;
 using devrating.git;
 using Microsoft.Extensions.Logging;
 
@@ -18,11 +19,13 @@ var gh = new GitHubClient(
     baseBranch: args[3],
     ownerAndRepository: args[0]);
 
-var m = new StabilityMetric(loggerFactory, args[4]);
+var m = new StabilityMetric(loggerFactory, new DefaultFormula(), args[4]);
+
+Diff? d = null;
 
 foreach (var pr in await gh.RecentMergedPrs())
     if (!m.IsCommitApplied(gh.Owner(), gh.Repository(), pr.Oid))
-        m.Apply(
+        m.Apply(d =
             new GitDiff(
                 log: loggerFactory,
                 @base:
@@ -58,4 +61,7 @@ foreach (var pr in await gh.RecentMergedPrs())
                 link: pr.Url,
                 organization: gh.Owner(),
                 createdAt: pr.MergedAt!.Value,
-                paths: args[5..]));
+                paths: args[6..]));
+
+if (d != null)
+    m.Report(d).Write(args[5]);
