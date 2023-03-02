@@ -8,7 +8,7 @@
 
   <ItemGroup>
     <PackageReference Include="devrating.factory" Version="23.1.1" />
-    <PackageReference Include="devrating.git" Version="23.1.1" />
+    <PackageReference Include="devrating.git" Version="23.3.1" />
     <PackageReference Include="devrating.sqlite" Version="23.1.1" />
     <PackageReference Include="Microsoft.Extensions.Logging.Console" Version="7.0.0" />
     <PackageReference Include="Octokit" Version="4.0.3" />
