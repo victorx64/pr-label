@@ -55,7 +55,7 @@ public sealed class GitHubClient
                         pr.MergedAt,
                         pr.Url))
                 .Compile()))
-        .Reverse();
+        .OrderBy(pr => pr.MergedAt!);
     }
 
     public async Task UpdatePrLabels(
