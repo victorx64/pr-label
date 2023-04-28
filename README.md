@@ -34,6 +34,9 @@ name: Add PR size and stability labels
     branches: [master, main]
 jobs:
   add-pr-labels:
+    permissions:
+      contents: read
+      pull-requests: write
     runs-on: ubuntu-latest
     steps:
       - uses: victorx64/pr-label@v0
