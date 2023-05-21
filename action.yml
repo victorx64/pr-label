@@ -15,9 +15,9 @@ runs:
         restore-keys: |
           devrating.sqlite3-
 
-    # on pull_request
+    # on pull_request_target
     - uses: actions/checkout@v3
-      if: github.event_name == 'pull_request'
+      if: github.event_name == 'pull_request_target'
       with:
         fetch-depth: 0
         ref: ${{ github.event.pull_request.head.sha }}
@@ -33,13 +33,13 @@ runs:
         '${{ github.action_path }}/devrating.sqlite3' `
         '${{ github.action_path }}/leaderboard.md' `
         ${{ inputs.git-pathspec }}
-      if: github.event_name == 'pull_request'
+      if: github.event_name == 'pull_request_target'
       shell: pwsh
     - run: rm '${{ github.action_path }}/devrating.sqlite3'
-      if: github.event_name == 'pull_request'
+      if: github.event_name == 'pull_request_target'
       shell: pwsh
     - uses: actions/upload-artifact@v3
-      if: github.event_name == 'pull_request'
+      if: github.event_name == 'pull_request_target'
       with:
         name: leaderboard.md
         path: ${{ github.action_path }}/leaderboard.md
