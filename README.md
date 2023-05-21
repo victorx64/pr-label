@@ -28,7 +28,7 @@ Throw this to `.github/workflows/pr-label.yml` in your repo:
 ```yaml
 name: Add PR size and stability labels
 "on":
-  pull_request:
+  pull_request_target:
     types: [opened, synchronize]
   push:
     branches: [master, main]
