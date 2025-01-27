@@ -38,7 +38,7 @@ runs:
     - run: rm '${{ github.action_path }}/devrating.sqlite3'
       if: github.event_name == 'pull_request_target'
       shell: pwsh
-    - uses: actions/upload-artifact@v3
+    - uses: actions/upload-artifact@v4
       if: github.event_name == 'pull_request_target'
       with:
         name: leaderboard.md
@@ -60,12 +60,12 @@ runs:
         ${{ inputs.git-pathspec }}
       if: github.event_name == 'push'
       shell: pwsh
-    - uses: actions/upload-artifact@v3
+    - uses: actions/upload-artifact@v4
       if: github.event_name == 'push'
       with:
         name: devrating.sqlite3
         path: ${{ github.action_path }}/devrating.sqlite3
-    - uses: actions/upload-artifact@v3
+    - uses: actions/upload-artifact@v4
       if: github.event_name == 'push'
       with:
         name: leaderboard.md
